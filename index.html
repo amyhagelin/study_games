@@ -58,17 +58,17 @@ header p{font-size:0.78rem;color:#6b7858;margin-top:1px;font-weight:600}
 .water{fill:#a3bbc7}
 
 /* DOTS */
-.dot{position:absolute;width:24px;height:24px;border-radius:50%;background:#c46b48;border:2.5px solid #fff;color:#f5efe1;font-family:'Baloo 2',cursive;font-size:0.62rem;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;transform:translate(-50%,-50%);transition:all .15s;box-shadow:0 2px 8px rgba(0,0,0,0.6);z-index:20;user-select:none;pointer-events:all}
-.dot:hover:not(.correct):not(.wrong):not(.learn){transform:translate(-50%,-50%) scale(1.35);box-shadow:0 0 14px #c46b4888}
+.dot{position:absolute;width:24px;height:24px;border-radius:50%;background:#c46b48;border:2.5px solid #fff;color:#f5efe1;font-family:'Baloo 2',cursive;font-size:0.62rem;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;transform:translate(-50%,-50%) scale(var(--inv-zoom,1));transition:all .15s;box-shadow:0 2px 8px rgba(0,0,0,0.6);z-index:20;user-select:none;pointer-events:all}
+.dot:hover:not(.correct):not(.wrong):not(.learn){transform:translate(-50%,-50%) scale(calc(1.35 * var(--inv-zoom,1)));box-shadow:0 0 14px #c46b4888}
 .dot.correct{background:#a3c585;border-color:#fff;cursor:default;animation:popIn .4s cubic-bezier(.34,1.56,.64,1) forwards}
 .dot.wrong{background:#d97757;animation:shake .4s ease}
 .dot.learn{background:#6a6890;color:#fff;cursor:default;pointer-events:none}
 .dot.hint-flash{animation:hintFlash .5s ease 3}
-.dot-label{position:absolute;transform:translateX(-50%);background:rgba(255,255,255,.95);color:#a3c585;font-family:'Quicksand',sans-serif;font-weight:700;font-size:0.58rem;padding:1px 5px;border-radius:3px;pointer-events:none;white-space:nowrap;z-index:21;border:1px solid #5a7a3f44;margin-top:12px}
+.dot-label{position:absolute;transform:translateX(-50%) scale(var(--inv-zoom,1));transform-origin:top center;background:rgba(255,255,255,.95);color:#a3c585;font-family:'Quicksand',sans-serif;font-weight:700;font-size:0.58rem;padding:1px 5px;border-radius:3px;pointer-events:none;white-space:nowrap;z-index:21;border:1px solid #5a7a3f44;margin-top:12px}
 .dot-label.learn{color:#fff;background:#6a6890;border-color:#a8a5d0;font-size:0.72rem;padding:2px 7px;font-weight:800;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
-@keyframes popIn{0%{transform:translate(-50%,-50%) scale(.4);opacity:.5}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
-@keyframes shake{0%,100%{transform:translate(-50%,-50%)}25%{transform:translate(calc(-50% - 5px),-50%)}75%{transform:translate(calc(-50% + 5px),-50%)}}
-@keyframes hintFlash{0%,100%{transform:translate(-50%,-50%) scale(1);box-shadow:0 0 0 0 #c46b48cc}50%{transform:translate(-50%,-50%) scale(1.5);box-shadow:0 0 0 10px #c46b4800}}
+@keyframes popIn{0%{transform:translate(-50%,-50%) scale(calc(.4 * var(--inv-zoom,1)));opacity:.5}100%{transform:translate(-50%,-50%) scale(var(--inv-zoom,1));opacity:1}}
+@keyframes shake{0%,100%{transform:translate(-50%,-50%) scale(var(--inv-zoom,1))}25%{transform:translate(calc(-50% - 5px),-50%) scale(var(--inv-zoom,1))}75%{transform:translate(calc(-50% + 5px),-50%) scale(var(--inv-zoom,1))}}
+@keyframes hintFlash{0%,100%{transform:translate(-50%,-50%) scale(var(--inv-zoom,1));box-shadow:0 0 0 0 #c46b48cc}50%{transform:translate(-50%,-50%) scale(calc(1.5 * var(--inv-zoom,1)));box-shadow:0 0 0 10px #c46b4800}}
 
 /* CONTROLS */
 .controls{display:flex;justify-content:center;gap:12px;padding:7px;background:#cdd6b5;border-top:1px solid #7d8a6a;flex-shrink:0}
@@ -94,6 +94,19 @@ header p{font-size:0.78rem;color:#6b7858;margin-top:1px;font-weight:600}
   .lvl{font-size:.7rem;padding:4px 8px}
   .mode-toggle{margin-left:6px;padding-left:6px}
 }
+
+.map-area{--zoom-bg:#f5efe1;--zoom-fg:#3d4a2e;--zoom-border:#a89968}
+
+/* PAN & ZOOM */
+.map-wrapper{overflow:hidden;cursor:grab;touch-action:none}
+.map-wrapper.dragging{cursor:grabbing}
+.map-transform{position:absolute;inset:0;transform-origin:0 0;will-change:transform;transition:transform .15s ease-out}
+.map-transform.dragging{transition:none}
+.zoom-controls{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;z-index:30;pointer-events:none}
+.zoom-btn{pointer-events:all;width:32px;height:32px;border:2px solid var(--zoom-border);background:var(--zoom-bg);color:var(--zoom-fg);border-radius:6px;font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;box-shadow:0 2px 6px rgba(0,0,0,0.2);user-select:none}
+.zoom-btn:hover{filter:brightness(1.1);transform:scale(1.05)}
+.zoom-btn:active{transform:scale(.95)}
+.zoom-btn.reset{font-size:0.7rem}
 </style>
 </head>
 <body>
@@ -128,6 +141,7 @@ header p{font-size:0.78rem;color:#6b7858;margin-top:1px;font-weight:600}
 
   <div class="map-area">
     <div class="map-wrapper" id="map-wrapper">
+      <div class="map-transform" id="map-transform">
       <svg id="us-svg" viewBox="0 0 1000 1312" xmlns="http://www.w3.org/2000/svg">
         <rect class="water" width="100%" height="100%"/>
 <path class="context" d="M-127.1,-24.4L-116.6,-23.2L-82.9,-19.8L-53.9,-17.2L-52.2,-37.4L-48.9,-35.4L-45.3,-36.0L-41.9,-33.4L-41.0,-31.7L-40.0,-22.4L-39.2,-21.2L-37.8,-9.7L-38.8,-6.7L-38.5,-4.2L-36.9,-2.1L-33.4,0.2L-30.3,1.0L-29.3,0.2L-23.7,1.1L-22.5,3.9L-14.7,4.8L-8.7,6.2L-7.9,9.2L-8.4,11.4L-7.7,12.0L-2.3,12.3L-1.6,11.7L1.2,11.9L4.2,11.2L4.2,9.1L8.5,7.3L13.6,6.8L14.7,7.8L21.4,8.3L30.3,13.3L33.7,13.3L33.7,15.5L31.2,15.7L30.6,17.3L32.6,18.9L37.9,18.6L39.6,21.1L38.8,22.6L39.4,24.9L42.2,30.8L45.5,29.8L44.6,25.9L46.4,24.0L48.3,24.6L53.7,24.2L55.7,26.3L55.3,29.2L57.4,31.2L59.2,30.8L60.3,32.5L65.5,33.2L66.0,36.3L65.4,37.7L68.0,38.7L70.9,38.3L70.4,41.7L73.3,40.5L75.0,41.6L77.5,40.6L82.0,40.1L88.1,35.2L90.3,34.7L92.1,33.3L95.3,32.1L97.1,32.8L97.0,35.8L99.1,36.7L98.3,37.8L99.5,40.0L101.6,40.3L106.1,39.1L106.9,40.5L110.1,39.9L113.4,40.8L115.9,40.3L122.1,40.2L125.8,41.6L126.9,44.6L131.2,47.1L133.2,45.6L135.7,45.3L137.4,46.2L140.4,46.1L141.8,46.9L145.0,46.0L141.5,48.4L140.2,47.5L139.6,49.0L137.4,49.7L134.0,52.2L129.2,53.6L127.3,55.2L120.5,57.0L114.2,59.2L112.2,59.4L106.7,61.3L106.2,61.9L99.4,65.2L94.5,68.6L84.8,76.5L82.4,79.5L74.9,87.3L71.3,90.4L67.8,92.1L64.2,96.0L62.8,96.4L58.9,100.0L57.6,100.4L49.3,106.1L48.0,107.1L48.9,109.5L50.7,111.7L48.0,109.2L46.2,109.7L45.7,111.0L43.6,111.5L44.7,112.4L43.1,114.3L40.3,113.4L38.5,144.6L37.2,145.0L36.2,147.7L33.1,147.2L31.6,149.7L29.8,149.0L28.6,150.6L25.2,151.5L22.4,153.5L19.3,160.1L16.3,162.1L15.0,167.3L15.0,169.7L17.7,170.8L19.1,170.5L20.9,172.1L20.7,173.5L23.5,177.6L23.3,179.9L21.1,181.9L21.2,183.2L18.8,185.3L18.8,189.5L18.1,190.9L18.7,195.2L16.4,197.7L17.8,199.3L17.3,202.3L18.0,204.2L16.9,206.1L17.1,209.5L15.3,213.1L15.9,214.8L18.0,216.2L21.9,220.4L21.7,221.5L23.6,222.3L24.7,224.4L31.5,225.2L33.0,226.1L34.2,229.8L36.0,231.6L42.7,234.3L45.6,236.3L47.4,238.2L47.3,240.6L48.3,241.4L48.8,245.3L51.0,247.4L54.6,249.5L55.0,250.9L59.7,255.2L65.0,256.8L66.9,259.4L70.8,265.9L71.8,269.4L70.5,274.5L70.6,277.8L71.9,279.6L71.3,281.6L72.3,284.0L44.1,282.7L13.2,280.9L-2.8,280.0L-33.5,277.9L-58.3,275.9L-101.4,272.2L-128.8,269.6L-123.2,214.0L-122.6,209.4L-121.4,195.6L-119.2,173.7L-120.3,170.6L-124.8,167.4L-127.2,167.0L-128.8,164.3L-129.7,160.9L-132.7,156.0L-131.8,154.0L-128.2,151.5L-125.1,150.1L-123.2,147.3L-121.1,145.4L-120.0,139.7L-120.0,134.8L-119.1,133.2L-119.6,124.5L-119.2,118.6L-120.8,117.2L-123.0,112.5L-123.4,110.2L-123.3,104.7L-124.5,102.0L-124.6,100.2L-123.6,97.2L-123.9,92.0L-123.2,91.3L-121.8,86.1L-122.7,86.5L-123.9,84.0L-122.9,76.3L-123.1,72.0L-122.9,66.9L-122.2,64.6L-122.7,59.9L-121.5,50.1L-122.1,49.9L-122.6,45.7L-123.6,41.4L-124.6,40.5L-125.5,35.8L-125.6,33.2L-126.9,31.5L-126.9,25.9L-128.5,21.2L-128.3,16.2L-127.2,13.9L-127.8,9.6L-127.1,7.3L-126.7,2.4L-127.3,-0.3L-126.1,-3.7L-124.8,-4.6L-124.1,-7.4L-125.7,-11.2L-126.1,-16.9L-126.7,-18.0L-127.6,-22.6L-127.1,-24.4Z"/>
@@ -166,6 +180,12 @@ header p{font-size:0.78rem;color:#6b7858;margin-top:1px;font-weight:600}
 <path id="state-Rhode_Island" class="state" data-name="Rhode Island" d="M856.5,333.7L859.2,334.1L861.0,342.7L858.6,345.2L857.0,340.7L856.8,337.8L855.2,337.0L856.7,344.2L854.3,344.5L854.3,346.1L852.9,346.7L852.4,344.2L853.9,339.5L854.5,336.2L856.5,333.7Z M850.1,335.6L850.7,335.2L852.6,337.3L852.0,337.7L850.1,335.6Z M850.4,346.4L850.9,344.0L850.1,343.0L850.4,340.3L851.1,341.1L851.8,345.0L850.4,346.4Z M844.7,363.8L845.7,359.9L846.5,360.4L847.2,363.8L844.7,363.8Z M833.6,356.9L834.6,355.4L833.6,352.0L835.2,351.3L834.1,341.7L833.0,334.9L830.9,324.8L830.1,320.0L846.2,316.7L847.3,323.4L849.0,322.9L849.3,326.6L850.4,329.0L853.3,330.1L855.1,332.0L855.0,334.2L853.4,336.4L852.2,334.6L852.5,332.9L849.4,330.9L848.0,329.3L849.7,335.0L846.5,334.7L848.4,336.2L849.1,339.6L847.5,340.4L849.1,342.6L849.6,345.9L848.5,348.2L848.0,351.7L846.2,351.7L842.6,353.2L839.0,355.3L833.9,357.6L833.6,356.9Z"/>
 
       </svg>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" id="zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
+        <button class="zoom-btn" id="zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
+        <button class="zoom-btn reset" id="zoom-reset" title="Reset zoom" aria-label="Reset zoom">⟲</button>
+      </div>
     </div>
   </div>
 </div>
@@ -275,6 +295,7 @@ function renderLevel(){
   buildWordBank();
   buildDots();
   updateScore();
+  autoFitLevel();
 
   if(learnMode){
     setInst('<span>📖 Learn mode</span> — study the state names on the map');
@@ -305,7 +326,7 @@ function buildWordBank(){
 }
 
 function buildDots(){
-  const wrapper = document.getElementById('map-wrapper');
+  const wrapper = document.getElementById('map-transform');
   wrapper.querySelectorAll('.dot,.dot-label').forEach(e => e.remove());
 
   STATES.forEach((c, i) => {
@@ -391,7 +412,7 @@ function handleGuess(name){
     answered.add(name); correctCount++;
     const chip = document.getElementById(chipId(name));
     if(chip){ chip.classList.add('used'); chip.classList.remove('selected'); }
-    addLabel(document.getElementById('map-wrapper'), STATES.find(x => x.name === name), false);
+    addLabel(document.getElementById('map-transform'), STATES.find(x => x.name === name), false);
     selected = null; updateScore();
     showToast('✅ '+name+'!','ok');
     const remaining = STATES.length - correctCount;
@@ -451,6 +472,180 @@ document.querySelectorAll('.lvl').forEach(b => {
 });
 document.getElementById('learn-toggle').onclick = () => setLearnMode(!learnMode);
 
+
+// ── PAN & ZOOM ─────────────────────────────────────────────────────────────
+let zoomScale = 1, zoomX = 0, zoomY = 0;
+const MIN_ZOOM = 1, MAX_ZOOM = 5;
+
+function applyTransform(animate){
+  const t = document.getElementById('map-transform');
+  if(!t) return;
+  if(!animate) t.classList.add('dragging');
+  t.style.transform = `translate(${zoomX}px, ${zoomY}px) scale(${zoomScale})`;
+  // Set CSS variable so dot/label CSS rules counter-scale to a constant visual size
+  t.style.setProperty('--inv-zoom', String(1 / zoomScale));
+  if(!animate) requestAnimationFrame(() => t.classList.remove('dragging'));
+}
+
+function clampPan(){
+  // Keep at least part of the map in view. With scale s, content size = wrapper * s.
+  // Allowed pan range: [wrapper * (1 - s), 0] so content edges don't leave the wrapper interior.
+  const wrap = document.getElementById('map-wrapper');
+  if(!wrap) return;
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  const minX = w * (1 - zoomScale);
+  const minY = h * (1 - zoomScale);
+  zoomX = Math.min(0, Math.max(minX, zoomX));
+  zoomY = Math.min(0, Math.max(minY, zoomY));
+}
+
+function setZoom(newScale, originX, originY, animate=true){
+  newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newScale));
+  if(newScale === zoomScale) return;
+  // Zoom around (originX, originY) in wrapper coordinates
+  const k = newScale / zoomScale;
+  zoomX = originX - (originX - zoomX) * k;
+  zoomY = originY - (originY - zoomY) * k;
+  zoomScale = newScale;
+  clampPan();
+  applyTransform(animate);
+}
+
+function resetZoom(){
+  zoomScale = 1; zoomX = 0; zoomY = 0;
+  applyTransform(true);
+}
+
+// Auto-fit zoom for current level — zoom to the bounding box of active dots
+function autoFitLevel(){
+  const wrap = document.getElementById('map-wrapper');
+  if(!wrap || !STATES || STATES.length === 0){ resetZoom(); return; }
+  if(STATES.length === ALL_STATES.length){ resetZoom(); return; }  // all-at-once = no zoom
+  // Compute bounding box of active states' centroids in % then convert to px
+  const xs = STATES.map(c => c.cx);
+  const ys = STATES.map(c => c.cy);
+  const minPct = {x: Math.min(...xs), y: Math.min(...ys)};
+  const maxPct = {x: Math.max(...xs), y: Math.max(...ys)};
+  // Add padding
+  const padPct = 8;
+  const bx = Math.max(0, minPct.x - padPct);
+  const by = Math.max(0, minPct.y - padPct);
+  const ex = Math.min(100, maxPct.x + padPct);
+  const ey = Math.min(100, maxPct.y + padPct);
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  const boxW = (ex - bx)/100 * w;
+  const boxH = (ey - by)/100 * h;
+  if(boxW <= 0 || boxH <= 0){ resetZoom(); return; }
+  const scaleNeeded = Math.min(w/boxW, h/boxH);
+  const targetScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, scaleNeeded * 0.9));
+  // Center the box in the wrapper
+  const centerXpx = (bx + ex)/2/100 * w;
+  const centerYpx = (by + ey)/2/100 * h;
+  zoomScale = targetScale;
+  zoomX = w/2 - centerXpx * targetScale;
+  zoomY = h/2 - centerYpx * targetScale;
+  // Note: skip clampPan() here — auto-fit should center the bbox even if the
+  // resulting position would otherwise be clamped to the wrapper edge.
+  applyTransform(true);
+}
+
+function setupPanZoom(){
+  const wrap = document.getElementById('map-wrapper');
+  if(!wrap) return;
+
+  // Wheel zoom
+  wrap.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const rect = wrap.getBoundingClientRect();
+    const ox = e.clientX - rect.left, oy = e.clientY - rect.top;
+    const factor = e.deltaY < 0 ? 1.15 : 1/1.15;
+    setZoom(zoomScale * factor, ox, oy, false);
+  }, { passive: false });
+
+  // Pointer drag to pan (works for mouse, pen, touch)
+  let dragging = false, lastX = 0, lastY = 0, downX = 0, downY = 0, moved = false;
+  let activePointer = null;
+  const pointers = new Map();  // for pinch-to-zoom
+
+  wrap.addEventListener('pointerdown', (e) => {
+    pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if(pointers.size === 1){
+      activePointer = e.pointerId;
+      lastX = downX = e.clientX; lastY = downY = e.clientY;
+      moved = false;
+      // Don't capture or set dragging yet — wait until pointermove crosses threshold
+    }
+  });
+
+  wrap.addEventListener('pointermove', (e) => {
+    if(!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if(pointers.size === 2){
+      const pts = [...pointers.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      if(wrap._lastPinchDist){
+        const rect = wrap.getBoundingClientRect();
+        const cx = (pts[0].x + pts[1].x)/2 - rect.left;
+        const cy = (pts[0].y + pts[1].y)/2 - rect.top;
+        const factor = dist / wrap._lastPinchDist;
+        setZoom(zoomScale * factor, cx, cy, false);
+      }
+      wrap._lastPinchDist = dist;
+      dragging = false;
+    } else if(e.pointerId === activePointer){
+      const totalDx = e.clientX - downX, totalDy = e.clientY - downY;
+      if(!dragging){
+        // Only start dragging once we've moved past 5px threshold
+        if(Math.abs(totalDx) > 5 || Math.abs(totalDy) > 5){
+          dragging = true; moved = true;
+          wrap.classList.add('dragging');
+          const t = document.getElementById('map-transform');
+          if(t) t.classList.add('dragging');
+          try { wrap.setPointerCapture(e.pointerId); } catch(_){}
+        }
+      }
+      if(dragging){
+        const dx = e.clientX - lastX, dy = e.clientY - lastY;
+        zoomX += dx; zoomY += dy;
+        clampPan();
+        applyTransform(false);
+      }
+      lastX = e.clientX; lastY = e.clientY;
+    }
+  });
+
+  function endPointer(e){
+    pointers.delete(e.pointerId);
+    if(pointers.size < 2) wrap._lastPinchDist = null;
+    if(e.pointerId === activePointer){
+      dragging = false;
+      activePointer = null;
+      wrap.classList.remove('dragging');
+      const t = document.getElementById('map-transform');
+      if(t) t.classList.remove('dragging');
+    }
+  }
+  wrap.addEventListener('pointerup', endPointer);
+  wrap.addEventListener('pointercancel', endPointer);
+
+  // Suppress click after drag (so panning doesn't trigger guesses)
+  wrap.addEventListener('click', (e) => {
+    if(moved){ e.stopPropagation(); e.preventDefault(); moved = false; }
+  }, true);
+
+  // Buttons
+  document.getElementById('zoom-in').onclick = () => {
+    const r = wrap.getBoundingClientRect();
+    setZoom(zoomScale * 1.4, r.width/2, r.height/2, true);
+  };
+  document.getElementById('zoom-out').onclick = () => {
+    const r = wrap.getBoundingClientRect();
+    setZoom(zoomScale / 1.4, r.width/2, r.height/2, true);
+  };
+  document.getElementById('zoom-reset').onclick = () => autoFitLevel();
+}
+
+setupPanZoom();
 renderLevel();
 </script>
 </body>
